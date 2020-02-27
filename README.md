@@ -14,6 +14,10 @@ cd svelte-create
 ## Create a new project
 
 ```bash
+svelte-create my-first-app
+```
+
+```bash
 mkdir my-first-app
 cd my-first-app
 svelte-create
