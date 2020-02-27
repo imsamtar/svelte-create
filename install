@@ -1,5 +1,5 @@
-chmod +777 start.sh
-cp start.sh ~/.local/bin/svelte-create
+chmod +777 svelte-create.sh
+cp svelte-create.sh ~/.local/bin/svelte-create
 if [ -z "$(which degit)" ]; then
     npm i -g degit
 fi
