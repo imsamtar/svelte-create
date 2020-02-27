@@ -1,5 +1,5 @@
 
-# Svelte-create
+# svelte-create
 
 Bash script to setup new project svelte (webpack), tailwind, firebase & cypress
 
