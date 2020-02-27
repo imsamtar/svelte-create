@@ -1,3 +1,21 @@
+if [ -z "$1" ]; then
+    set "."
+fi
+if [ -d $1 ]; then
+    if [ -z "$(ls -A $1)" ]; then
+        cd $1
+    else
+        echo -e "\n> '$1' is not empty\n"
+        exit
+    fi
+elif [ -f $1 ]; then
+    echo -e "\n> File named '$1' already exists\n"
+    exit
+else
+    mkdir $1
+    cd $1
+fi
+####
 npx degit sveltejs/template-webpack .
 npm install
 npm i -D @fullhuman/postcss-purgecss postcss postcss-load-config svelte-preprocess tailwindcss
@@ -5,7 +23,8 @@ npx tailwind init --full
 
 ####
 clear
-read -p "Enter package name (small letters): " pkgname
+read -p "Enter package name (small letters): [$( basename $PWD )]" pkgname
+if [ -z $pkgname ]; then pkgname="$( basename $PWD )"; fi
 sed -i 's/svelte-app/'$pkgname'/g' package.json
 
 ####
@@ -62,11 +81,13 @@ if [ $cypress != "n" ] && [ $cypress != "N" ]; then
     if [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
         npm i -D cypress-firebase
     fi
-    echo "It can take a long time! It is recommended to install cypress globally."
-    read -p "Are you sure to install cypress as a devDependency? [N] " cypress
-    if [ -z $cypress ]; then cypress="n"; fi
-    if [ $cypress = "y" ] || [ $cypress = "Y" ]; then
-        npm i -D cypress
+
+    if [ -z "$(which cypress)" ]; then
+        read -p "Install cypress globally? [N] " cypress
+        if [ -z $cypress ]; then cypress="n"; fi
+        if [ $cypress = "y" ] || [ $cypress = "Y" ]; then
+            npm i -g cypress
+        fi
     fi
 fi
 ####
