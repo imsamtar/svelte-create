@@ -17,7 +17,7 @@ cd svelte-create
 svelte-create my-first-app
 ```
 
-### OR
+#### OR
 
 ```bash
 mkdir my-first-app
