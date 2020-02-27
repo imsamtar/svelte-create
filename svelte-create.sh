@@ -68,7 +68,7 @@ if [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
 fi
 ####
 clear
-read -p "Do you want to install @conposi/gestures? [Y] " gestures
+read -p "Do you want to install @composi/gestures? [Y] " gestures
 if [ -z $gestures ]; then gestures="y"; fi
 if [ $gestures != "n" ] && [ $gestures != "N" ]; then
     npm i -D @composi/gestures
