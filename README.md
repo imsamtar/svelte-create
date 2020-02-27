@@ -1,7 +1,7 @@
 
 # svelte-create
 
-Bash script to setup new project svelte (webpack), tailwind, firebase & cypress
+Bash script to setup new project for svelte (webpack), tailwind, firebase & cypress
 
 ## Install as a CLI tool
 
