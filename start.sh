@@ -3,12 +3,12 @@ npm install
 npm i -D @fullhuman/postcss-purgecss postcss postcss-load-config svelte-preprocess tailwindcss
 npx tailwind init --full
 
-#############################################################################
+####
 clear
 read -p "Enter package name (small letters): " pkgname
 sed -i 's/svelte-app/'$pkgname'/g' package.json
 
-#############################################################################
+####
 echo "Updating postcss.config.js..."
 echo -e "const purgecss = require('@fullhuman/postcss-purgecss')({
 \tcontent: ['./src/**/*.html', './src/**/*.svelte'],
@@ -23,7 +23,7 @@ module.exports = {
 \t]
 };" > postcss.config.js
 
-#############################################################################
+####
 echo "Creating src/Tailwind.svelte..."
 echo -e "<style global>
 \t@tailwind base;
@@ -31,14 +31,15 @@ echo -e "<style global>
 \t@tailwind utilities;
 </style>" > src/Tailwind.svelte
 
-#############################################################################
+####
 echo "Updateing src/App.svelte..."
 sed -i "s/<script>/<script>\n\timport Tailwind from \'.\/Tailwind.svelte';/g" src/App.svelte
 
+####
 echo "Updating webpack.config.js..."
 sed -i "s/options: {/options: {\n\t\t\t\t\t\tpreprocess: require('svelte-preprocess')({ postcss: true }),/g" webpack.config.js
 
-#############################################################################
+####
 clear
 read -p "Do you want to install sveltefire? [Y] " sveltefire
 if [ -z $sveltefire ]; then sveltefire="y"; fi
@@ -46,14 +47,14 @@ if [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
     npm i -D sveltefire
     npm i -D firebase
 fi
-#############################################################################
+####
 clear
 read -p "Do you want to install @conposi/gestures? [Y] " gestures
 if [ -z $gestures ]; then gestures="y"; fi
 if [ $gestures != "n" ] && [ $gestures != "N" ]; then
     npm i -D @composi/gestures
 fi
-#############################################################################
+####
 clear
 read -p "Do you want to install Cypress? [Y] " cypress
 if [ -z $cypress ]; then cypress="y"; fi
@@ -68,5 +69,5 @@ if [ $cypress != "n" ] && [ $cypress != "N" ]; then
         npm i -D cypress
     fi
 fi
-#############################################################################
+####
 clear
