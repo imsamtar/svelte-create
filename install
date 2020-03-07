@@ -5,11 +5,13 @@ fi
 
 cp svelte-create.sh ~/.local/bin/svelte-create
 
+UPADATEDPATH=false
+
 if ! [[ $PATH =~ "/.local/bin" ]]; then
     if ! [ "$(cat ~/.bashrc | grep :~/.local/bin)" ]; then
         echo -e "\n#Added by svelte-create\nexport PATH=$""PATH:~/.local/bin\n#\n" >> ~/.bashrc
     fi
-    export PATH=$PATH:~/.local/bin
+    UPADATEDPATH=true
 fi
 
 if [ -z "$(which degit)" ]; then
@@ -17,5 +19,12 @@ if [ -z "$(which degit)" ]; then
 fi
 
 echo
-echo -e "> Now you can run command \033[1m\e[32msvelte-create \033[0m\e[39min any empty directory to setup a new project 🙌"
+echo -e "Successfully installed 🚀\n"
+echo -e "Available commands: \n"
+echo -e "  1. \033[1m\e[32msvelte-create \e[39m\033[0m"
+echo -e "  2. \033[1m\e[32msvelte-create [project-name]\e[39m\033[0m"
 echo
+
+if [ $UPADATEDPATH == true ]; then
+    exec bash
+fi
