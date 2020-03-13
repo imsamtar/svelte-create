@@ -1,3 +1,12 @@
+if [ $1 ] && [ $1 == 'update' ]; then
+    cd /tmp
+    git clone https://github.com/imsamtar/svelte-create.git
+    cd svelte-create
+    ./install
+    cd /tmp
+    rm -rf svelte-create
+    exit
+fi
 if [ -z "$1" ]; then
     set "."
 fi
