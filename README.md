@@ -25,6 +25,10 @@ cd my-first-app
 svelte-create
 ```
 
+## [Get Started](https://hasura.io/docs/1.0/graphql/manual/getting-started/index.html#get-started-from-scratch) with hasura
+- [Docker](https://hasura.io/docs/1.0/graphql/manual/getting-started/docker-simple.html#docker-simple)
+- [Heroku](https://hasura.io/docs/1.0/graphql/manual/getting-started/heroku-simple.html#heroku-simple)
+
 ## Install Cypress globally (only needed once)
 
 ```bash
