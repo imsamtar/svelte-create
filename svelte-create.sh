@@ -26,9 +26,6 @@ else
 fi
 ####
 npx degit sveltejs/template-webpack .
-npm install
-npm i -D @fullhuman/postcss-purgecss postcss postcss-load-config svelte-preprocess tailwindcss
-npx tailwind init --full
 
 ####
 clear
@@ -66,6 +63,11 @@ sed -i "s/<script>/<script>\n\timport Tailwind from \'.\/Tailwind.svelte';/g" sr
 ####
 echo "Updating webpack.config.js..."
 sed -i "s/options: {/options: {\n\t\t\t\t\t\tpreprocess: require('svelte-preprocess')({ postcss: true }),/g" webpack.config.js
+
+####
+npm install
+npm i -D @fullhuman/postcss-purgecss postcss postcss-load-config svelte-preprocess tailwindcss
+npx tailwind init --full
 
 ####
 clear
