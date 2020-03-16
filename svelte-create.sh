@@ -133,14 +133,6 @@ else
 fi
 ####
 clear
-read -p "Do you want to install @composi/gestures? [Y] " gestures
-if [ -z $gestures ]; then gestures="y"; fi
-if [ $gestures != "n" ] && [ $gestures != "N" ]; then
-    echo 'Installing @composi/gestures...'
-    $install -D @composi/gestures
-fi
-####
-clear
 if ! [ $sveltefire ]; then sveltefire='zzz'; fi
 if [ -z "$(which cypress)" ] || [ $sveltefire != 'n' ] && [ $sveltefire != 'N' ] && [ $sveltefire != 'zzz' ] ; then
     read -p "Do you want to install Cypress? [Y] " cypress
