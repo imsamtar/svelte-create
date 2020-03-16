@@ -24,6 +24,7 @@ else
     mkdir $1
     cd $1
 fi
+install='npm i --loglevel silent '
 ####
 npx degit sveltejs/template-webpack .
 
@@ -32,6 +33,8 @@ clear
 read -p "Enter package name (small letters): [$( basename $PWD )]" pkgname
 if [ -z $pkgname ]; then pkgname="$( basename $PWD )"; fi
 sed -i 's/svelte-app/'$pkgname'/g' package.json
+sed -i 's/webpack-dev-server /webpack-dev-server --port 3000 /g' package.json
+sed -i 's/localhost:8080/localhost:3000/g' README.md
 
 ####
 echo "Updating postcss.config.js..."
@@ -65,8 +68,8 @@ echo "Updating webpack.config.js..."
 sed -i "s/options: {/options: {\n\t\t\t\t\t\tpreprocess: require('svelte-preprocess')({ postcss: true }),/g" webpack.config.js
 
 ####
-npm install
-npm i -D @fullhuman/postcss-purgecss postcss postcss-load-config svelte-preprocess tailwindcss
+$install
+$install -D tailwindcss @fullhuman/postcss-purgecss postcss postcss-load-config svelte-preprocess
 npx tailwind init --full
 
 ####
@@ -74,7 +77,7 @@ clear
 read -p "Do you want to setup for hasura? [Y] " hasura
 if [ -z $hasura ]; then hasura="y"; fi
 if [ $hasura != "n" ] && [ $hasura != "N" ]; then
-    npm i --save apollo-cache-inmemory apollo-client apollo-link apollo-link-error apollo-link-http apollo-link-ws graphql graphql-tag subscriptions-transport-ws
+    $install --save apollo-cache-inmemory apollo-client apollo-link apollo-link-error apollo-link-http apollo-link-ws graphql graphql-tag subscriptions-transport-ws
     echo "import { split } from 'apollo-link';
 import { HttpLink } from 'apollo-link-http';
 import { WebSocketLink } from 'apollo-link-ws';
@@ -120,8 +123,8 @@ else
     read -p "Do you want to install sveltefire? [Y] " sveltefire
     if [ -z $sveltefire ]; then sveltefire="y"; fi
     if [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
-        npm i -D sveltefire
-        npm i -D firebase
+        $install -D sveltefire
+        $install -D firebase
     fi
 fi
 ####
@@ -129,24 +132,25 @@ clear
 read -p "Do you want to install @composi/gestures? [Y] " gestures
 if [ -z $gestures ]; then gestures="y"; fi
 if [ $gestures != "n" ] && [ $gestures != "N" ]; then
-    npm i -D @composi/gestures
+    $install -D @composi/gestures
 fi
 ####
 clear
-read -p "Do you want to install Cypress? [Y] " cypress
-if [ -z $cypress ]; then cypress="y"; fi
-if [ $cypress != "n" ] && [ $cypress != "N" ]; then
-    if [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
-        npm i -D cypress-firebase
-    fi
+if ! [ $sveltefire ]; then sveltefire='zzz'; fi
+if [ -z "$(which cypress)" ] || [ $sveltefire != 'n' ] && [ $sveltefire != 'N' ] && [ $sveltefire != 'zzz' ] ; then
+    read -p "Do you want to install Cypress? [Y] " cypress
+    if [ -z $cypress ]; then cypress="y"; fi
+    if [ $cypress != "n" ] && [ $cypress != "N" ]; then
+        if ! [ -z $sveltefire ] && [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
+            $install -D cypress-firebase
+        fi
 
-    if [ -z "$(which cypress)" ]; then
-        read -p "Install cypress globally? [N] " cypress
-        if [ -z $cypress ]; then cypress="n"; fi
-        if [ $cypress = "y" ] || [ $cypress = "Y" ]; then
-            npm i -g cypress
+        if [ -z "$(which cypress)" ]; then
+            read -p "Install cypress globally? [N] " cypress
+            if [ -z $cypress ]; then cypress="n"; fi
+            if [ $cypress = "y" ] || [ $cypress = "Y" ]; then
+                $install -g cypress
+            fi
         fi
     fi
 fi
-####
-clear
