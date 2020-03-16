@@ -1,3 +1,23 @@
+log=''
+install='npm i --loglevel silent '
+
+function clearScr {
+    clear -x
+}
+
+function printLog {
+    if [ "$1" ]; then
+        if [ "$log" ]; then
+            log=$log'\n'$1;
+        else
+            log=$1
+        fi
+    fi
+    sleep 0.25
+    clearScr
+    echo -e $log
+}
+
 if [ $1 ] && [ $1 == 'update' ]; then
     cd /tmp
     git clone https://github.com/imsamtar/svelte-create.git
@@ -24,20 +44,19 @@ else
     mkdir $1
     cd $1
 fi
-install='npm i --loglevel silent '
-####
-npx degit sveltejs/template-webpack .
 
-####
-clear
+printLog "+ Cloning svelte template for webpack..."
+npx degit sveltejs/template-webpack .
+clearScr
 read -p "Enter package name (small letters): [$( basename $PWD )]" pkgname
+
+printLog
 if [ -z $pkgname ]; then pkgname="$( basename $PWD )"; fi
 sed -i 's/svelte-app/'$pkgname'/g' package.json
 sed -i 's/webpack-dev-server /webpack-dev-server --port 3000 /g' package.json
 sed -i 's/localhost:8080/localhost:3000/g' README.md
 
-####
-echo "Updating postcss.config.js..."
+printLog "+ Updating postcss.config.js..."
 echo -e "const purgecss = require('@fullhuman/postcss-purgecss')({
 \tcontent: ['./src/**/*.html', './src/**/*.svelte'],
 \twhitelistPatterns: [/svelte-/],
@@ -51,36 +70,32 @@ module.exports = {
 \t]
 };" > postcss.config.js
 
-####
-echo "Creating src/Tailwind.svelte..."
+printLog "+ Creating src/Tailwind.svelte..."
 echo -e "<style global>
 \t@tailwind base;
 \t@tailwind components;
 \t@tailwind utilities;
 </style>" > src/Tailwind.svelte
 
-####
-echo "Updateing src/App.svelte..."
+printLog "+ Updating src/App.svelte..."
 sed -i "s/<script>/<script>\n\timport Tailwind from \'.\/Tailwind.svelte';/g" src/App.svelte
 
-####
-echo "Updating webpack.config.js..."
+printLog "+ Updating webpack.config.js..."
 sed -i "s/options: {/options: {\n\t\t\t\t\t\tpreprocess: require('svelte-preprocess')({ postcss: true }),/g" webpack.config.js
 
-####
-echo 'Installing svelte dependencies...'
+printLog "+ Installing svelte dependencies..."
 $install
-echo 'Installing tailwind dependencies...'
+printLog "+ Installing tailwind dependencies..."
 $install -D tailwindcss @fullhuman/postcss-purgecss postcss postcss-load-config svelte-preprocess
-echo 'Initializing tailwind configuration file...'
+printLog "+ Initializing tailwind configuration file..."
 npx tailwind init --full
-
-####
-clear
+printLog
 read -p "Do you want to setup for hasura? [Y] " hasura
+
+printLog
 if [ -z $hasura ]; then hasura="y"; fi
 if [ $hasura != "n" ] && [ $hasura != "N" ]; then
-    echo 'Installing graphql dependencies...'
+    printLog "+ Installing graphql dependencies..."
     $install --save apollo-cache-inmemory apollo-client apollo-link apollo-link-error apollo-link-http apollo-link-ws graphql graphql-tag subscriptions-transport-ws
     echo "import { split } from 'apollo-link';
 import { HttpLink } from 'apollo-link-http';
@@ -123,33 +138,37 @@ export default new ApolloClient({
 });
 " > src/graphql-client.js
 else
-    clear
     read -p "Do you want to install sveltefire? [Y] " sveltefire
+    printLog
     if [ -z $sveltefire ]; then sveltefire="y"; fi
     if [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
-        echo 'Installing sveltefire...'
-        $install -D sveltefire firebase
+        printLog "+ Installing sveltefire..."
+        $install -D firebase sveltefire
+        printLog
     fi
 fi
-####
-clear
+
 if ! [ $sveltefire ]; then sveltefire='zzz'; fi
 if [ -z "$(which cypress)" ] || [ $sveltefire != 'n' ] && [ $sveltefire != 'N' ] && [ $sveltefire != 'zzz' ] ; then
     read -p "Do you want to install Cypress? [Y] " cypress
+    printLog
     if [ -z $cypress ]; then cypress="y"; fi
     if [ $cypress != "n" ] && [ $cypress != "N" ]; then
         if ! [ -z $sveltefire ] && [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
-            echo 'Installing cypress-firebase...'
+            printLog "+ Installing cypress-firebase..."
             $install -D cypress-firebase
         fi
 
         if [ -z "$(which cypress)" ]; then
             read -p "Install cypress globally? [N] " cypress
+            printLog
             if [ -z $cypress ]; then cypress="n"; fi
             if [ $cypress = "y" ] || [ $cypress = "Y" ]; then
-                echo 'Installing cypress globally...'
+                printLog "+ Installing cypress globally..."
                 $install -g cypress
             fi
         fi
     fi
+    printLog
 fi
+printLog
