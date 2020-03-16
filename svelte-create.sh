@@ -68,8 +68,11 @@ echo "Updating webpack.config.js..."
 sed -i "s/options: {/options: {\n\t\t\t\t\t\tpreprocess: require('svelte-preprocess')({ postcss: true }),/g" webpack.config.js
 
 ####
+echo 'Installing svelte dependencies...'
 $install
+echo 'Installing tailwind dependencies...'
 $install -D tailwindcss @fullhuman/postcss-purgecss postcss postcss-load-config svelte-preprocess
+echo 'Initializing tailwind configuration file...'
 npx tailwind init --full
 
 ####
@@ -77,6 +80,7 @@ clear
 read -p "Do you want to setup for hasura? [Y] " hasura
 if [ -z $hasura ]; then hasura="y"; fi
 if [ $hasura != "n" ] && [ $hasura != "N" ]; then
+    echo 'Installing graphql dependencies...'
     $install --save apollo-cache-inmemory apollo-client apollo-link apollo-link-error apollo-link-http apollo-link-ws graphql graphql-tag subscriptions-transport-ws
     echo "import { split } from 'apollo-link';
 import { HttpLink } from 'apollo-link-http';
@@ -123,8 +127,8 @@ else
     read -p "Do you want to install sveltefire? [Y] " sveltefire
     if [ -z $sveltefire ]; then sveltefire="y"; fi
     if [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
-        $install -D sveltefire
-        $install -D firebase
+        echo 'Installing sveltefire...'
+        $install -D sveltefire firebase
     fi
 fi
 ####
@@ -132,6 +136,7 @@ clear
 read -p "Do you want to install @composi/gestures? [Y] " gestures
 if [ -z $gestures ]; then gestures="y"; fi
 if [ $gestures != "n" ] && [ $gestures != "N" ]; then
+    echo 'Installing @composi/gestures...'
     $install -D @composi/gestures
 fi
 ####
@@ -142,6 +147,7 @@ if [ -z "$(which cypress)" ] || [ $sveltefire != 'n' ] && [ $sveltefire != 'N' ]
     if [ -z $cypress ]; then cypress="y"; fi
     if [ $cypress != "n" ] && [ $cypress != "N" ]; then
         if ! [ -z $sveltefire ] && [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
+            echo 'Installing cypress-firebase...'
             $install -D cypress-firebase
         fi
 
@@ -149,6 +155,7 @@ if [ -z "$(which cypress)" ] || [ $sveltefire != 'n' ] && [ $sveltefire != 'N' ]
             read -p "Install cypress globally? [N] " cypress
             if [ -z $cypress ]; then cypress="n"; fi
             if [ $cypress = "y" ] || [ $cypress = "Y" ]; then
+                echo 'Installing cypress globally...'
                 $install -g cypress
             fi
         fi
