@@ -1,6 +1,13 @@
 log=''
 install='npm i --loglevel silent '
 
+if ping -c 3 google.com >/dev/null; then
+    echo -e '\n> Successfully connected\n'
+else
+    echo -e '\n> Not connected to internet!\n'
+    exit
+fi
+
 function clearScr() {
     clear -x
 }
