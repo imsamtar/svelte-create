@@ -1,14 +1,14 @@
 log=''
 install='npm i --loglevel silent '
 
-function clearScr {
+function clearScr() {
     clear -x
 }
 
-function printLog {
+function printLog() {
     if [ "$1" ]; then
         if [ "$log" ]; then
-            log=$log'\n'$1;
+            log=$log'\n'$1
         else
             log=$1
         fi
@@ -48,10 +48,10 @@ fi
 printLog "+ Cloning svelte template for webpack..."
 npx degit sveltejs/template-webpack .
 clearScr
-read -p "Enter package name (small letters): [$( basename $PWD )]" pkgname
+read -p "Enter package name (small letters): [$(basename $PWD)]" pkgname
 
 printLog
-if [ -z $pkgname ]; then pkgname="$( basename $PWD )"; fi
+if [ -z $pkgname ]; then pkgname="$(basename $PWD)"; fi
 sed -i 's/svelte-app/'$pkgname'/g' package.json
 sed -i 's/webpack-dev-server /webpack-dev-server --port 3000 /g' package.json
 sed -i 's/localhost:8080/localhost:3000/g' README.md
@@ -68,14 +68,14 @@ module.exports = {
 \t\trequire('tailwindcss'),
 \t\t...(production ? [purgecss] : [])
 \t]
-};" > postcss.config.js
+};" >postcss.config.js
 
 printLog "+ Creating src/Tailwind.svelte..."
 echo -e "<style global>
 \t@tailwind base;
 \t@tailwind components;
 \t@tailwind utilities;
-</style>" > src/Tailwind.svelte
+</style>" >src/Tailwind.svelte
 
 printLog "+ Updating src/App.svelte..."
 sed -i "s/<script>/<script>\n\timport Tailwind from \'.\/Tailwind.svelte';/g" src/App.svelte
@@ -86,7 +86,7 @@ sed -i "s/options: {/options: {\n\t\t\t\t\t\tpreprocess: require('svelte-preproc
 printLog "+ Installing svelte dependencies..."
 $install
 printLog "+ Installing tailwind dependencies..."
-$install -D tailwindcss @fullhuman/postcss-purgecss postcss postcss-load-config svelte-preprocess
+$install --save-dev tailwindcss @fullhuman/postcss-purgecss postcss postcss-load-config svelte-preprocess
 printLog "+ Initializing tailwind configuration file..."
 npx tailwind init --full
 printLog
@@ -96,7 +96,7 @@ printLog
 if [ -z $hasura ]; then hasura="y"; fi
 if [ $hasura != "n" ] && [ $hasura != "N" ]; then
     printLog "+ Installing graphql dependencies..."
-    $install --save apollo-cache-inmemory apollo-client apollo-link apollo-link-error apollo-link-http apollo-link-ws graphql graphql-tag subscriptions-transport-ws
+    $install --save-dev apollo-cache-inmemory apollo-client apollo-link apollo-link-error apollo-link-http apollo-link-ws graphql graphql-tag subscriptions-transport-ws
     echo "import { split } from 'apollo-link';
 import { HttpLink } from 'apollo-link-http';
 import { WebSocketLink } from 'apollo-link-ws';
@@ -136,27 +136,27 @@ export default new ApolloClient({
     link,
     cache: new InMemoryCache(),
 });
-" > src/graphql-client.js
-else
-    read -p "Do you want to install sveltefire? [Y] " sveltefire
-    printLog
-    if [ -z $sveltefire ]; then sveltefire="y"; fi
-    if [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
-        printLog "+ Installing sveltefire..."
-        $install -D firebase sveltefire
-        printLog
-    fi
+" >src/graphql-client.js
 fi
 
-if ! [ $sveltefire ]; then sveltefire='zzz'; fi
-if [ -z "$(which cypress)" ] || [ $sveltefire != 'n' ] && [ $sveltefire != 'N' ] && [ $sveltefire != 'zzz' ] ; then
+printLog
+read -p "Do you want to install firebase? [Y] " firebase
+printLog
+if [ -z $firebase ]; then firebase="y"; fi
+if [ $firebase != "n" ] && [ $firebase != "N" ]; then
+    printLog "+ Installing firebase..."
+    $install --save-dev @firebase/app @firebase/auth
+    printLog
+fi
+
+if [ -z "$(which cypress)" ] || [ $firebase != 'n' ] && [ $firebase != 'N' ]; then
     read -p "Do you want to install Cypress? [Y] " cypress
     printLog
     if [ -z $cypress ]; then cypress="y"; fi
     if [ $cypress != "n" ] && [ $cypress != "N" ]; then
-        if ! [ -z $sveltefire ] && [ $sveltefire != "n" ] && [ $sveltefire != "N" ]; then
+        if ! [ -z $firebase ] && [ $firebase != "n" ] && [ $firebase != "N" ]; then
             printLog "+ Installing cypress-firebase..."
-            $install -D cypress-firebase
+            $install --save-dev cypress-firebase
         fi
 
         if [ -z "$(which cypress)" ]; then
