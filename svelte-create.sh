@@ -1,7 +1,7 @@
 log=''
 install='npm i --loglevel silent '
 
-if ping -c 3 google.com >/dev/null; then
+if ping -c 3 127.0.0.1 >/dev/null; then
     echo -e '\n> Successfully connected\n'
 else
     echo -e '\n> Not connected to internet!\n'
@@ -103,7 +103,7 @@ printLog
 if [ -z $hasura ]; then hasura="y"; fi
 if [ $hasura != "n" ] && [ $hasura != "N" ]; then
     printLog "+ Installing graphql dependencies..."
-    $install --save-dev apollo-cache-inmemory apollo-client apollo-link apollo-link-error apollo-link-http apollo-link-ws graphql graphql-tag subscriptions-transport-ws
+    $install --save-dev apollo-cache-inmemory apollo-client apollo-link apollo-link-error apollo-link-http apollo-link-ws graphql graphql-tag subscriptions-transport-ws @firebase/app @firebase/auth
     echo "import { split } from 'apollo-link';
 import { HttpLink } from 'apollo-link-http';
 import { WebSocketLink } from 'apollo-link-ws';
@@ -111,110 +111,118 @@ import { getMainDefinition } from 'apollo-utilities';
 import ApolloClient from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 
-// Create an http link:
-const httpLink = new HttpLink({
-    uri: 'http://localhost:8080/v1/graphql'
-});
+export default function(){
+    // Create an http link:
+    const httpLink = new HttpLink({
+        uri: 'http://localhost:8080/v1/graphql',
+        headers: {'Authorization': 'Bearer '+localStorage.getItem('token') }
+    });
 
-// Create a WebSocket link:
-const wsLink = new WebSocketLink({
-    uri: 'ws://localhost:8080/v1/graphql',
-    options: {
-        reconnect: true
-    }
-});
+    // Create a WebSocket link:
+    const wsLink = new WebSocketLink({
+        uri: 'ws://localhost:8080/v1/graphql',
+        options: {
+            reconnect: true,
+            connectionParams: {
+                headers: {'Authorization': 'Bearer '+localStorage.getItem('token') }
+            }
+        }
+    });
 
-// using the ability to split links, you can send data to each link
-// depending on what kind of operation is being sent
-const link = split(
-    // split based on operation type
-    ({ query }) => {
-        const definition = getMainDefinition(query);
-        return (
-            definition.kind === 'OperationDefinition' &&
-            definition.operation === 'subscription'
-        );
-    },
-    wsLink,
-    httpLink,
-);
+    // using the ability to split links, you can send data to each link
+    // depending on what kind of operation is being sent
+    const link = split(
+        // split based on operation type
+        ({ query }) => {
+            const definition = getMainDefinition(query);
+            return (
+                definition.kind === 'OperationDefinition' &&
+                definition.operation === 'subscription'
+            );
+        },
+        wsLink,
+        httpLink,
+    );
 
-export default new ApolloClient({
-    link,
-    cache: new InMemoryCache(),
-});
+    return new ApolloClient({
+        link,
+        cache: new InMemoryCache(),
+    });
+}
 " >src/graphql-client.js
     echo '
-Environment variables
+## Authentication
 
-- `HASURA_GRAPHQL_ADMIN_SECRET`
-    ```
-    Your admin secret
-    ```
-- `HASURA_GRAPHQL_JWT_SECRET`
-    ```json
-    {
-        "type":"RS256",
-        "jwk_url": "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
-        "audience": "<firebase-project-id>",
-        "issuer": "https://securetoken.google.com/<firebase-project-id>"
+### Environment variables
+
+#### `HASURA_GRAPHQL_ADMIN_SECRET`
+```
+Your admin secret
+```
+#### `HASURA_GRAPHQL_JWT_SECRET`
+```json
+{
+    "type":"RS256",
+    "jwk_url": "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
+    "audience": "<firebase-project-id>",
+    "issuer": "https://securetoken.google.com/<firebase-project-id>"
+}
+```
+
+### Firebase cloud function
+
+```javascript
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+
+admin.initializeApp(functions.config().firebase);
+
+exports.processSignUp = functions.auth.user().onCreate(user => {
+    const customClaims = {
+        "https://hasura.io/jwt/claims": {
+            "x-hasura-default-role": "user",
+            "x-hasura-allowed-roles": ["user"],
+            "x-hasura-user-id": user.uid
+        }
+    };
+    return admin
+        .auth()
+        .setCustomUserClaims(user.uid, customClaims)
+        .then(() => {
+            // Update real-time database to notify client to force refresh.
+            const metadataRef = admin.database().ref("metadata/" + user.uid);
+            // Set the refresh time to the current UTC timestamp.
+            // This will be captured on the client to force a token refresh.
+            return metadataRef.set({ refreshTime: new Date().getTime() });
+        })
+        .catch(error => {
+            console.log(error);
+        });
+});
+```
+### Realtime Database Rules
+
+```json
+{
+  "rules": {
+    "metadata": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid"
+      }
     }
-    ```
-
-Firebase cloud function
-- index.js
-    ```javascript
-    const functions = require("firebase-functions");
-    const admin = require("firebase-admin");
-
-    admin.initializeApp(functions.config().firebase);
-
-    exports.processSignUp = functions.auth.user().onCreate(user => {
-        const customClaims = {
-            "https://hasura.io/jwt/claims": {
-                "x-hasura-default-role": "user",
-                "x-hasura-allowed-roles": ["user"],
-                "x-hasura-user-id": user.uid
-            }
-        };
-        return admin
-            .auth()
-            .setCustomUserClaims(user.uid, customClaims)
-            .then(() => {
-                // Update real-time database to notify client to force refresh.
-                const metadataRef = admin.database().ref("metadata/" + user.uid);
-                // Set the refresh time to the current UTC timestamp.
-                // This will be captured on the client to force a token refresh.
-                return metadataRef.set({ refreshTime: new Date().getTime() });
-            })
-            .catch(error => {
-                console.log(error);
-            });
-    });
-    ```
-    ' >>README.md
-fi
-
-printLog
-read -p "Do you want to install firebase? [Y] " firebase
-printLog
-if [ -z $firebase ]; then firebase="y"; fi
-if [ $firebase != "n" ] && [ $firebase != "N" ]; then
-    printLog "+ Installing firebase..."
-    $install --save-dev @firebase/app @firebase/auth
-    printLog
+  }
+}
+```
+' >>README.md
 fi
 
 if [ -z "$(which cypress)" ] || [ $firebase != 'n' ] && [ $firebase != 'N' ]; then
-    read -p "Do you want to install Cypress? [Y] " cypress
+    read -p "Do you want to use cypress? [Y] " cypress
     printLog
     if [ -z $cypress ]; then cypress="y"; fi
     if [ $cypress != "n" ] && [ $cypress != "N" ]; then
-        if ! [ -z $firebase ] && [ $firebase != "n" ] && [ $firebase != "N" ]; then
-            printLog "+ Installing cypress-firebase..."
-            $install --save-dev cypress-firebase
-        fi
-
+        printLog "+ Installing cypress-firebase..."
+        $install --save-dev cypress-firebase
         if [ -z "$(which cypress)" ]; then
             read -p "Install cypress globally? [N] " cypress
             printLog
