@@ -1,7 +1,7 @@
 log=''
 install='npm i --loglevel silent '
 
-if ping -c 3 127.0.0.1 >/dev/null; then
+if ping -c 3 8.8.8.8 >/dev/null; then
     echo -e '\n> Successfully connected\n'
 else
     echo -e '\n> Not connected to internet!\n'
